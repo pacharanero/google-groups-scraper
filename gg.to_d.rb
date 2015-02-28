@@ -20,9 +20,16 @@ class GoogleGroupToDiscourse
   	@username = ENV['GOOGLE_USER']
   	@password = ENV['GOOGLE_PASSWORD']
   	@google_group_url = ENV['GOOGLE_GROUP_URL']        
+    
+    # create firefox profile to be able to download attachments
+        profile = Selenium::WebDriver::Firefox::Profile.new
+        profile['browser.download.folderList'] = 2
+        profile['browser.download.manager.showWhenStarting'] = false
+        profile['browser.download.dir'] = '/tmp'
+        profile['browser.helperApps.neverAsk.saveToDisk'] = 'application/octet-stream'
 
     # initialize a driver to look up DOM information and another for scraping raw email information
-  	@driver = Selenium::WebDriver.for :firefox
+  	@driver = Selenium::WebDriver.for :firefox, :profile => profile
     login @driver
 
     #initialize Discourse Client
@@ -75,19 +82,20 @@ class GoogleGroupToDiscourse
   def get_messages (topic)
     topic[:messages] =[] # messages will be appended to this as an array of hashes
     @driver.navigate.to topic[:url]
-    sleep (3) #wait for it to load
+    sleep (5) #wait for it to load
     # expand all the message_snippets
     minimized_messages = @driver.find_elements(:xpath, "//span[contains(@id, 'message_snippet_')]")
-    minimized_messages.each { |link| link.click; sleep (0.1)}
+    minimized_messages.each { |link| link.click; sleep (0.2)}
     # get all messages
     all_messages = @driver.find_elements(:xpath, "//div[contains(@id, 'b_action_')]")
     puts "#{all_messages.count} messages in this thread"
     # iterate through messages
     sender = @driver.find_elements(:class, 'H1SYRSB-P-a')
     date = @driver.find_elements(:class, 'H1SYRSB-wb-Q')
-    body = @driver.find_elements(:class, 'H1SYRSB-wb-P').reject! { |c| c.text=="" } #reject blank ones
+    body = @driver.find_elements(:class, 'H1SYRSB-wb-P')
+    
     all_messages.each_with_index do |message, index|
-      topic[:messages] << { sender: sender[index].text, date: date[index].attribute(:title), body: body[index].text }
+      topic[:messages] << { sender: sender[index].text, date: date[index].attribute(:title), body: (body[index].nil?) ? ' ' : body[index].text }
     end
     return topic
   end
