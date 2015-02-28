@@ -83,9 +83,9 @@ class GoogleGroupToDiscourse
     all_messages = @driver.find_elements(:xpath, "//div[contains(@id, 'b_action_')]")
     puts "#{all_messages.count} messages in this thread"
     # iterate through messages
-    sender = @driver.find_elements(:class, 'GFP-UI5CA1B')
-    date = @driver.find_elements(:class, 'GFP-UI5CDKB')
-    body = @driver.find_elements(:class, 'GFP-UI5CCKB').reject! { |c| c.text=="" } #reject blank ones
+    sender = @driver.find_elements(:class, 'H1SYRSB-P-a')
+    date = @driver.find_elements(:class, 'H1SYRSB-wb-Q')
+    body = @driver.find_elements(:class, 'H1SYRSB-wb-P').reject! { |c| c.text=="" } #reject blank ones
     all_messages.each_with_index do |message, index|
       topic[:messages] << { sender: sender[index].text, date: date[index].attribute(:title), body: body[index].text }
     end
@@ -96,11 +96,12 @@ class GoogleGroupToDiscourse
     topics = get_topics
     topics.each do |topic|
       messages = get_messages( topic )
-      # this would be where to insert any cruft-removal code
-      send_to_discourse( messages )
-      puts "All topics migrated to Discourse"
-      close_browsers
     end
+    # this would be where to insert any cruft-removal code
+    send_to_discourse( messages )
+    puts "All topics migrated to Discourse"
+    close_browsers
+  end
 
   def save_all_topics_json(start_at_topic_number=0)
     topics = get_topics
