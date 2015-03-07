@@ -130,9 +130,10 @@ class GoogleGroupToDiscourse
   def save_all_topics_yaml
     topics = get_topics
     File.open("all_topics.yaml", "w") do |file|
-    topics.each_with_index do |index|
-      file.puts YAML::dump(index)
-      file.puts ""
+      topics.each_with_index do |index|
+        file.puts YAML::dump(index)
+        file.puts ""
+      end
     end
   end
 
@@ -142,6 +143,7 @@ class GoogleGroupToDiscourse
     File.open("all_topics.yaml", "r").each do |object|
       topics << YAML::load(object)
     end
+    puts topics
   end 
 
   def save_topic_json(topic)
