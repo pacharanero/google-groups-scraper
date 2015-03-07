@@ -4,6 +4,8 @@ require 'nokogiri'
 require 'cgi'
 require 'json'
 require 'discourse_api'
+require 'yaml'
+
 
 
 class GoogleGroupToDiscourse
@@ -82,7 +84,7 @@ class GoogleGroupToDiscourse
   def get_messages (topic)
     topic[:messages] =[] # messages will be appended to this as an array of hashes
     @driver.navigate.to topic[:url]
-    sleep (5) #wait for it to load
+    sleep (3) #wait for it to load
     # expand all the message_snippets
     minimized_messages = @driver.find_elements(:xpath, "//span[contains(@id, 'message_snippet_')]")
     minimized_messages.each { |link| link.click; sleep (0.2)}
@@ -124,6 +126,23 @@ class GoogleGroupToDiscourse
     end
     puts "All topics saved to ./topics/ directory in JSON format"
   end
+
+  def save_all_topics_yaml
+    topics = get_topics
+    File.open("all_topics.yaml", "w") do |file|
+    topics.each_with_index do |index|
+      file.puts YAML::dump(index)
+      file.puts ""
+    end
+  end
+
+  def load_all_topics_yaml
+    topics = []
+    $/="\n\n"
+    File.open("all_topics.yaml", "r").each do |object|
+      topics << YAML::load(object)
+    end
+  end 
 
   def save_topic_json(topic)
     topic_json = get_messages(topic).to_json
