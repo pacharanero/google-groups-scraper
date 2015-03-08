@@ -32,7 +32,8 @@ class GoogleGroupToDiscourse
           application/x-zip-compressed , application/zip , application/x-rar-compressed , application/msword , application/excel , 
           application/vnd.ms-excel , application/x-excel , application/x-msexcel , text/plain , image/tiff , image/x-tiff, image/png , image/gif , 
           audio/x-wav , audio/mpeg , application/pdf , application/vnd.openxmlformats-officedocument.spreadsheetml.sheet , 
-          application/vnd.openxmlformats-officedocument.wordprocessingml.document , video/mp4 , audio/mp4 , audio/ogg, video/ogg , video/mpeg'
+          application/vnd.openxmlformats-officedocument.wordprocessingml.document , video/mp4 , audio/mp4 , audio/ogg, video/ogg , video/mpeg ,
+          image/bmp'
         profile['pdfjs.disabled'] = true
 
     # initialize a driver to look up DOM information and another for scraping raw email information
