@@ -5,7 +5,7 @@ require 'cgi'
 require 'json'
 require 'discourse_api'
 require 'yaml'
-
+require 'fileutils'
 
 
 class GoogleGroupToDiscourse
@@ -27,8 +27,10 @@ class GoogleGroupToDiscourse
         profile = Selenium::WebDriver::Firefox::Profile.new
         profile['browser.download.folderList'] = 2
         profile['browser.download.manager.showWhenStarting'] = false
-        profile['browser.download.dir'] = '/tmp'
-        profile['browser.helperApps.neverAsk.saveToDisk'] = 'application/octet-stream'
+        profile['browser.download.dir'] = '/tmp/scraper-saves'
+        profile['browser.helperApps.neverAsk.saveToDisk'] = 'application/octet-stream , audio/mpeg3 , audio/x-mpeg-3 , image/jpeg application/x-compressed, 
+          application/x-zip-compressed , application/zip , application/x-rar-compressed , application/msword , application/excel ,
+          application/vnd.ms-excel , application/x-excel , application/x-msexcel , text/plain , image/tiff , image/x-tiff'
 
     # initialize a driver to look up DOM information and another for scraping raw email information
   	@driver = Selenium::WebDriver.for :firefox, :profile => profile
@@ -101,7 +103,26 @@ class GoogleGroupToDiscourse
     end
     return topic
   end
-
+  
+  def get_attachments (topic)
+    @driver.navigate.to topic[:url]
+    sleep (3) #wait for it to load
+    # expand all the message_snippets
+    minimized_messages = @driver.find_elements(:xpath, "//span[contains(@id, 'message_snippet_')]")
+    minimized_messages.each { |link| link.click; sleep (0.2)}
+    
+    found_attachments = 0
+    all_attachments = @driver.find_elements(:xpath, "//a[contains(@href, 'group/chimeresgr/attach/')]").reject { |link| link['href'].include? 'view=1' } 
+    all_attachments.each do |attachment|
+      if !attachment.nil? and !attachment.attribute(:href).nil? 
+        puts  "#{attachment.attribute(:href)}"
+        driver.navigate().to(attachment.attribute(:href))
+        found_attachments = found_attachments + 1
+      end
+    end
+    return found_attachments
+  end
+    
   def scrape_the_lot
     topics = get_topics
     topics.each do |topic|
@@ -111,6 +132,22 @@ class GoogleGroupToDiscourse
     send_to_discourse( messages )
     puts "All topics migrated to Discourse"
     close_browsers
+  end
+
+  def scrape_the_attachments
+    topics = load_all_topics_yaml
+    Dir.mkdir("attachments") unless Dir.exist?("attachments")
+    Dir.chdir("attachments")
+    firefox_saves = '/tmp/scraper-saves'
+    topics.each_with_index do |topic, topic_number|
+      attachments = get_attachments( topic )
+      if attachments > 0
+        dest_prefix = "topic#{topic_number+1}."
+        Dir.glob(File.join(firefox_saves, '*')).each do |file|
+          FileUtils.move file, dest_prefix + File.basename(file)
+        end
+      end
+    end
   end
 
   def save_all_topics_json(start_at_topic_number=0)
@@ -143,7 +180,7 @@ class GoogleGroupToDiscourse
     File.open("all_topics.yaml", "r").each do |object|
       topics << YAML::load(object)
     end
-    puts topics
+    return topics
   end 
 
   def save_topic_json(topic)
