@@ -28,9 +28,11 @@ class GoogleGroupToDiscourse
         profile['browser.download.folderList'] = 2
         profile['browser.download.manager.showWhenStarting'] = false
         profile['browser.download.dir'] = '/tmp/scraper-saves'
-        profile['browser.helperApps.neverAsk.saveToDisk'] = 'application/octet-stream , audio/mpeg3 , audio/x-mpeg-3 , image/jpeg application/x-compressed, 
+        profile['browser.helperApps.neverAsk.saveToDisk'] = 'application/octet-stream , audio/mpeg3 , audio/x-mpeg-3 , image/jpeg , application/x-compressed , 
           application/x-zip-compressed , application/zip , application/x-rar-compressed , application/msword , application/excel ,
-          application/vnd.ms-excel , application/x-excel , application/x-msexcel , text/plain , image/tiff , image/x-tiff'
+          application/vnd.ms-excel , application/x-excel , application/x-msexcel , text/plain , image/tiff , image/x-tiff, image/png , image/gif , 
+          audio/x-wav , audio/mpeg , application/pdf'
+        profile['pdfjs.disabled'] = true
 
     # initialize a driver to look up DOM information and another for scraping raw email information
   	@driver = Selenium::WebDriver.for :firefox, :profile => profile
@@ -115,14 +117,15 @@ class GoogleGroupToDiscourse
     all_attachments = @driver.find_elements(:xpath, "//a[contains(@href, 'group/chimeresgr/attach/')]").reject { |link| link['href'].include? 'view=1' } 
     all_attachments.each do |attachment|
       if !attachment.nil? and !attachment.attribute(:href).nil? 
-        puts  "#{attachment.attribute(:href)}"
         driver.navigate().to(attachment.attribute(:href))
+        #some attachments are big, wait for download
+        sleep(10)
         found_attachments = found_attachments + 1
       end
     end
     return found_attachments
   end
-    
+  
   def scrape_the_lot
     topics = get_topics
     topics.each do |topic|
