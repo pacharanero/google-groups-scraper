@@ -29,9 +29,10 @@ class GoogleGroupToDiscourse
         profile['browser.download.manager.showWhenStarting'] = false
         profile['browser.download.dir'] = '/tmp/scraper-saves'
         profile['browser.helperApps.neverAsk.saveToDisk'] = 'application/octet-stream , audio/mpeg3 , audio/x-mpeg-3 , image/jpeg , application/x-compressed , 
-          application/x-zip-compressed , application/zip , application/x-rar-compressed , application/msword , application/excel ,
+          application/x-zip-compressed , application/zip , application/x-rar-compressed , application/msword , application/excel , 
           application/vnd.ms-excel , application/x-excel , application/x-msexcel , text/plain , image/tiff , image/x-tiff, image/png , image/gif , 
-          audio/x-wav , audio/mpeg , application/pdf'
+          audio/x-wav , audio/mpeg , application/pdf , application/vnd.openxmlformats-officedocument.spreadsheetml.sheet , 
+          application/vnd.openxmlformats-officedocument.wordprocessingml.document , video/mp4 , audio/mp4 , audio/ogg, video/ogg , video/mpeg'
         profile['pdfjs.disabled'] = true
 
     # initialize a driver to look up DOM information and another for scraping raw email information
@@ -119,7 +120,7 @@ class GoogleGroupToDiscourse
       if !attachment.nil? and !attachment.attribute(:href).nil? 
         driver.navigate().to(attachment.attribute(:href))
         #some attachments are big, wait for download
-        sleep(10)
+        sleep(15)
         found_attachments = found_attachments + 1
       end
     end
